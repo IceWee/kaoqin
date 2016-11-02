@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URLDecoder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,9 @@ public class ConfigUtils {
         try {
             config = new Config();
             ClassLoader classLoader = ClassLoader.getSystemClassLoader();  
-            File configFile = new File(classLoader.getResource(Constants.CONFIG_FILE_PATH).getFile());
+            String configPath = classLoader.getResource(Constants.CONFIG_FILE_PATH).getFile();
+            configPath = URLDecoder.decode(configPath, "UTF-8");
+            File configFile = new File(configPath);
             reader = new BufferedReader(new FileReader(configFile));
             String line, value;
             String[] array;
