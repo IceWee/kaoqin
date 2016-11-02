@@ -1,7 +1,6 @@
 package bing.util;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,8 +32,9 @@ public class WorkDayUtils {
     static final ThreadLocal<SimpleDateFormat> YYYY_MM_DD_FORMAT = new ThreadLocal<>();
     static final ThreadLocal<SimpleDateFormat> YYYYMMDD_FORMAT = new ThreadLocal<>();
 
-    // 免费节假日API请求地址
-    static final String APP_URL = "http://tool.bitefu.net/jiari?d=";
+    // 免费节假日API Key和请求地址
+    static final String API_KEY = "8f7338334660a235e802f18a82633a6d";
+    static final String API_URL = "http://apis.baidu.com/xiaogg/holiday/holiday?d=";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkDayUtils.class);
 
@@ -63,7 +63,7 @@ public class WorkDayUtils {
         }
         Object[] array = list.toArray();
         String dates = StringUtils.join(array, ",");
-        String json = get(APP_URL, dates);
+        String json = get(API_URL, dates);
         if (StringUtils.isNotBlank(json)) {
             Map<String, String> map = JSON.parseObject(json, new TypeReference<Map<String, String>>() {});
             String day;
@@ -106,26 +106,6 @@ public class WorkDayUtils {
     }
 
     /**
-     * 判断所给日期是否为工作日
-     *
-     * @param dates 20130101,20130103,20130105,20130201
-     * @return
-     */
-    public static boolean isWorkDay(String dates) {
-        boolean isWorkDay = false;
-        try {
-            String param = "d=" + dates;
-            // 工作日对应结果为 0, 休息日对应结果为 1, 节假日对应的结果为 2
-            String num = get(APP_URL, param);
-            if (WORK_DAY_NUM.equals(num)) {
-                isWorkDay = true;
-            }
-        } catch (Exception ex) {
-        }
-        return isWorkDay;
-    }
-
-    /**
      * GET+
      *
      * @param httpUrl
@@ -142,6 +122,7 @@ public class WorkDayUtils {
             URL getUrl = new URL(url);
             httpConn = (HttpURLConnection) getUrl.openConnection();
             httpConn.setRequestMethod("GET");
+            httpConn.setRequestProperty("apikey", API_KEY);
             httpConn.connect();
             if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 reader = new BufferedReader(new InputStreamReader(httpConn.getInputStream(), ENCODING_UTF8));
