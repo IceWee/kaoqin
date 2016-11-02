@@ -8,6 +8,7 @@ import bing.bean.Config;
 import bing.util.ConfigUtils;
 import bing.util.ExcelCellStyleUtils;
 import bing.util.ExceptionUtils;
+import bing.util.WorkDayUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -75,6 +76,8 @@ public class StatThread implements Runnable {
         HSSFWorkbook workbook = null;
         try {
             workbook = new HSSFWorkbook(new FileInputStream(new File(cardExcelPath)));
+            String yearMonth = getCardYearMonth(workbook, config); // 解析出打卡年月
+            Set<Integer> workDays = WorkDayUtils.getWorkDays(yearMonth); // 获得当前工作月份应该上班的天
             HSSFSheet sheet = workbook.getSheetAt(0);
             int beginIndex = config.getCardDataBeginRow() - 1;
             HSSFRow row;
@@ -114,7 +117,7 @@ public class StatThread implements Runnable {
                 } else {
                     offdutyTime = StringUtils.trim(offdutyCell.getStringCellValue());
                 }
-                int code = verifyCardTime(config, ondutyTime, offdutyTime);
+                int code = verifyCardTime(config, ondutyTime, offdutyTime, workDays, day);
                 if (Constants.CARD_CORRECT == code) {
                     dutyDays++; // 打卡记录完全正确，考勤天数自加
                 } 
@@ -249,18 +252,26 @@ public class StatThread implements Runnable {
     }
     
     /**
-     * 判断打卡记录是否正常 判断依据： 1）上班打卡时间和下班时间打卡都为空 2）上班或下班打卡时间任意一个为空
+     * 判断打卡记录是否正常 判断依据： 
+     * 1）上班打卡时间和下班时间打卡都为空 
+     * 2）上班或下班打卡时间任意一个为空
      * 3）上班和下班打卡时间都非空，需要分别判断上班时间是否迟到，下班时间是否早退
      *
      * @param config
-     * @param ondutyTime
-     * @param offdutyTime
+     * @param ondutyTime 上班时间
+     * @param offdutyTime 下班时间
+     * @param workDays 工作日集合；1,2,3...
+     * @param day 天；1
      * @return
      */
-    private int verifyCardTime(Config config, String ondutyTime, String offdutyTime) {
+    private int verifyCardTime(Config config, String ondutyTime, String offdutyTime, Set<Integer> workDays, int day) {
         int code = Constants.CARD_CORRECT;
         if (StringUtils.isBlank(ondutyTime) && StringUtils.isBlank(offdutyTime)) { // 全天无打卡记录
-            code = Constants.CARD_EMPTY;
+            if (workDays.contains(day)) { // 工作日未打卡
+                code = Constants.CARD_ERROR;
+            } else {
+                code = Constants.CARD_EMPTY;
+            }
         } else if (StringUtils.isNotBlank(ondutyTime) && StringUtils.isNotBlank(offdutyTime)) { // 上下班都有打卡记录
             if (ondutyTime.compareTo(config.getOndutyTime()) <= 0 && offdutyTime.compareTo(config.getOffdutyTime()) >= 0) { // 打卡正常
                 code = Constants.CARD_CORRECT;
@@ -425,6 +436,30 @@ public class StatThread implements Runnable {
                 offdutyCell.setCellStyle(redStyle);
                 break;
         }
+    }
+    
+    /**
+     * 解析打卡记录表获得打卡的年月
+     * 格式：2016-10
+     * 
+     * @param workbook
+     * @param config
+     * @return 2016-08
+     */
+    private String getCardYearMonth(HSSFWorkbook workbook, Config config) {
+        String yearMonth = null;
+        try {
+            HSSFSheet sheet = workbook.getSheetAt(0);
+            int beginIndex = config.getCardDataBeginRow() - 1;
+            HSSFRow firstRow = sheet.getRow(beginIndex);
+            HSSFCell dateCell = firstRow.getCell(config.getCardAttendateColumn() - 1); // 考勤日期
+            String attendate = StringUtils.trim(dateCell.getStringCellValue());
+            yearMonth = StringUtils.substringBeforeLast(attendate, "-");
+        } catch (Exception e) {
+            String error = ExceptionUtils.createExceptionString(e);
+            LOGGER.error("解析打卡记录表获得打卡年月时出现了异常...\n{}", error);
+        }
+        return yearMonth;
     }
     
 }

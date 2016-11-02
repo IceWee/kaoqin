@@ -88,7 +88,6 @@ public class ExcelCellStyleUtils {
         cellStyle.setBorderRight(BorderStyle.THIN);
         cellStyle.setBorderBottom(BorderStyle.THIN);
         cellStyle.setBorderLeft(BorderStyle.THIN);
-       
     }
     
 }
