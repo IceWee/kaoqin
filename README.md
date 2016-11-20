@@ -1,85 +1,26 @@
-[![Electron Logo]
+考勤统计辅助工具，它是用来简化繁琐、易错的考勤统计核对工作，将人工核对打卡记录的工作交给计算机。
+它基于[NetBeans 8](https://netbeans.org/)、[JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)及[POI 3](http://poi.apache.org/download.html)
+以及一些其他的开源工具包编写而成的。
 
-[![Travis Build Status]
-[![AppVeyor Build Status]
-[![devDependency Status]
-[![Join the Electron Community on Slack]
-
-Electron框架，让您可使用JavaScript, HTML 及 CSS 编写桌面程序。
-它基于[Node.js](https://nodejs.org/)及[Chromium](http://www.chromium.org)
-[Atom editor](https://github.com/atom/atom)以及很多其他的[apps](http://electron.atom.io/apps)就是使用Electron编写的。
-
-请关注Twitter [@ElectronJS](https://twitter.com/electronjs) 以获得重要通告。
-
-这个项目将坚持贡献者盟约 [code of conduct](CODE_OF_CONDUCT.md).
-我们希望贡献者能遵守贡献者盟约，如果有任何不能接受的行为被发现，请报告至electron@github.com(PS:请用英语)
+这个项目是个私人跨平台项目，如果有任何不能接受的行为被发现，请报告至icewee@126.com(PS：请用中文)
 
 ## 下载
 
-预编译的二进制版本及symbols调试版本可以在[releases](https://github.com/electron/electron/releases)找获，
-其中包括Linux,Windows和macOS版本。
+项目源码可以在[releases](https://github.com/IceWee/kaoqin/releases)下载，
+也可以使用GIT克隆到你的本地。
 
-你可以使用[`npm`](https://docs.npmjs.com/)来安装预编译版本electron的二进制文件:
-You can also use [`npm`] to install prebuilt electron binaries.
+## 简介
+运行方法：
+本工具为绿色软件，无需安装，双击“运行.bat”即可运行。
 
+使用注意：
+由于考勤系统导出的打卡记录是CSV格式文件，本工具无法解析，需要先另存为97-2003版本“.xls”后缀的Excel文件才能处理。
 
-```sh
-# 在 $PATH 里全局安装 `electron`
-npm install electron -g
-
-# 安装为开发依赖
-npm install electron --save-dev
-
-# 淘宝源全局安装(PS:大陆到Electron源的下载速度极不稳定，无法下载成功时可用)
-ELECTRON_MIRROR=http://npm.taobao.org/mirrors/electron/ npm install -g electron
-
-# 淘宝源开发依赖安装(PS:大陆到Electron源的下载速度极不稳定，无法下载成功时可用)
-ELECTRON_MIRROR=http://npm.taobao.org/mirrors/electron/ npm install electron --save-dev
-```
-
-### 其他源
-
-- [中国](https://npm.taobao.org/mirrors/electron)
-
-## 文档
-
-开发指南及API文档位于
-[docs](https://github.com/electron/electron/tree/master/docs)
-它也包括如何编译和改进Electron
-
-## 翻译版文档
-
-- [葡萄牙语－巴西](https://github.com/electron/electron/tree/master/docs-translations/pt-BR)
-- [韩语](https://github.com/electron/electron/tree/master/docs-translations/ko-KR)
-- [日语](https://github.com/electron/electron/tree/master/docs-translations/jp)
-- [西班牙语](https://github.com/electron/electron/tree/master/docs-translations/es)
-- [简体中文](https://github.com/electron/electron/tree/master/docs-translations/zh-CN)
-- [繁体中文](https://github.com/electron/electron/tree/master/docs-translations/zh-TW)
-- [土耳其](https://github.com/electron/electron/tree/master/docs-translations/tr-TR)
-- [乌克兰](https://github.com/electron/electron/tree/master/docs-translations/uk-UA)
-- [俄语](https://github.com/electron/electron/tree/master/docs-translations/ru-RU)
-- [法语](https://github.com/electron/electron/tree/master/docs-translations/fr-FR)
-
-## 快速开始
-
-Clone 并 run 这个 [`electron/electron-quick-start`](https://github.com/electron/electron-quick-start)
-库来看行动的一个最小的 Electron 应用软件。
-
-## 社区
-
-你可以在此提出问题和互相提供帮助:
-- [`electron`](http://discuss.atom.io/c/electron) Atom论坛上的一类。
-- `#atom-shell` Freenode上的聊天频道
-- [`Atom`](http://atom-slack.herokuapp.com/) Slack上的频道
-- [`electron-br`](https://electron-br.slack.com) *(葡萄牙语－巴西)*
-- [`electron-kr`](http://www.meetup.com/electron-kr/) *(韩语)*
-- [`electron-jp`](https://electron-jp-slackin.herokuapp.com/) *(日语)*
-- [`electron-tr`](http://www.meetup.com/Electron-JS-Istanbul/) *(土耳其)*
-- [`electron-id`](https://electron-id.slack.com) *(印度尼西亚)*
-
-查看 [awesome-electron](https://github.com/sindresorhus/awesome-electron)
-来获得被社会维持的应用件例子，工具和资源列表。
+特别提醒：
+本工具只统计打卡记录表中正常打卡记录，即上班时间在9点之前以及下班在5点半之后的记录，
+这样的记录为正常打卡记录，会在考勤统计时累加出勤天数，早退和迟到的打卡记录不累加，上班和下班无打卡记录的不累加。
+使用了百度节假日API后，可以自动识别工作日，如国庆、春节长假后倒休的周六、日为正常工作日，若不打卡会标识异常。
 
 ## 执照
 
-MIT © 2016 Github
+MIT © 2016 IceWee
