@@ -25,6 +25,7 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,7 +145,7 @@ public class StatThread implements Runnable {
         if (StringUtils.endsWithIgnoreCase(excelPath, EXCEL_SUFFIX_XLS)) {
             workbook = new HSSFWorkbook(new FileInputStream(new File(excelPath)));
         } else {
-            workbook = new HSSFWorkbook(new FileInputStream(new File(excelPath)));
+            workbook = new XSSFWorkbook();
         }
         return workbook;
     }
