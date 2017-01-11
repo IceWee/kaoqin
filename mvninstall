@@ -1,2 +1,0 @@
-mvn install:install-file -DgroupId=org.jvnet -DartifactId=substance -Dversion=4.0 -Dpackaging=jar -Dfile=substance.jar -DgeneratePom=true
-mvn install:install-file -DgroupId=bing -DartifactId=JTextAreaExt -Dversion=1.0 -Dpackaging=jar -Dfile=JTextAreaExt.jar -DgeneratePom=true

@@ -145,7 +145,7 @@ public class StatThread implements Runnable {
         if (StringUtils.endsWithIgnoreCase(excelPath, EXCEL_SUFFIX_XLS)) {
             workbook = new HSSFWorkbook(new FileInputStream(new File(excelPath)));
         } else {
-            workbook = new XSSFWorkbook();
+            workbook = new XSSFWorkbook(new FileInputStream(new File(excelPath)));
         }
         return workbook;
     }
@@ -211,7 +211,8 @@ public class StatThread implements Runnable {
      * @param attendances
      */
     private void fillAttendance(Config config, List<Attendance> attendances) {
-        String filename = Constants.ATTEND_EXCEL_MODIFIED + "." + Constants.EXT_XLS;
+        String suffix = getExcelSuffix(attendExcelPath);
+        String filename = Constants.ATTEND_EXCEL_MODIFIED + "." + suffix;
         String filepath = ConfigUtils.getReportPath() + filename;
         FileInputStream in = null;
         FileOutputStream out = null;
@@ -350,9 +351,15 @@ public class StatThread implements Runnable {
      * @param cardRecords
      */
     private void createCardExcel(List<CardRecord> cardRecords) {
-        String filename = Constants.CARD_EXCEL_MODIFIED + "." + Constants.EXT_XLS;
+        String suffix = getExcelSuffix(cardExcelPath);
+        String filename = Constants.CARD_EXCEL_MODIFIED + "." +suffix;
         String filepath = ConfigUtils.getReportPath() + filename;
-        Workbook workbook = new HSSFWorkbook();
+        Workbook workbook;
+        if (EXCEL_SUFFIX_XLS.endsWith(suffix)) {
+            workbook = new HSSFWorkbook();
+        } else {
+            workbook = new XSSFWorkbook();
+        }
         CellStyle headerStyle = ExcelCellStyleUtils.createHeaderCellStyle(workbook);
         CellStyle defaultStyle = ExcelCellStyleUtils.createCellStyle(workbook, Constants.CELL_STYLE_DEFAULT);
         CellStyle yellowStyle = ExcelCellStyleUtils.createCellStyle(workbook, Constants.CELL_STYLE_YELLOW);
@@ -502,6 +509,15 @@ public class StatThread implements Runnable {
             LOGGER.error("解析打卡记录表获得打卡年月时出现了异常...\n{}", error);
         }
         return yearMonth;
+    }
+    
+    /**
+     * 获取excel后缀名
+     * @param excel
+     * @return 
+     */
+    private static String getExcelSuffix(String excel) {
+        return StringUtils.substringAfterLast(excel, ".");
     }
 
 }
