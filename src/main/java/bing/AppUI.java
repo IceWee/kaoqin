@@ -99,7 +99,7 @@ public class AppUI extends JFrame {
         copyrightLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("走向未来®考勤统计辅助工具v1.0");
+        setTitle("走向未来®考勤统计辅助工具");
 
         configPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "配置区域", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("幼圆", 2, 14))); // NOI18N
         configPanel.setFont(new java.awt.Font("幼圆", 2, 14)); // NOI18N
