@@ -92,7 +92,6 @@ public class AppUI extends JFrame {
         attendTextField = new javax.swing.JTextField();
         cardButton = new javax.swing.JButton();
         attendButton = new javax.swing.JButton();
-        noteLabel = new javax.swing.JLabel();
         logPanel = new javax.swing.JPanel();
         logScrollPane = new javax.swing.JScrollPane();
         console = new bing.ui.JTextAreaExt();
@@ -141,10 +140,6 @@ public class AppUI extends JFrame {
             }
         });
 
-        noteLabel.setFont(new java.awt.Font("幼圆", 1, 14)); // NOI18N
-        noteLabel.setForeground(new java.awt.Color(255, 51, 51));
-        noteLabel.setText("提醒：请先将考勤系统导出的打卡记录表另存为97-2003版本的Excel文件");
-
         javax.swing.GroupLayout configPanelLayout = new javax.swing.GroupLayout(configPanel);
         configPanel.setLayout(configPanelLayout);
         configPanelLayout.setHorizontalGroup(
@@ -157,7 +152,7 @@ public class AppUI extends JFrame {
                             .addGroup(configPanelLayout.createSequentialGroup()
                                 .addComponent(cardLabel)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(cardTextField))
+                                .addComponent(cardTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE))
                             .addGroup(configPanelLayout.createSequentialGroup()
                                 .addComponent(attendLabel)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -167,20 +162,14 @@ public class AppUI extends JFrame {
                             .addComponent(cardButton, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(attendButton, javax.swing.GroupLayout.Alignment.TRAILING)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, configPanelLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(noteLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(statButton)))
                 .addContainerGap())
         );
         configPanelLayout.setVerticalGroup(
             configPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(configPanelLayout.createSequentialGroup()
-                .addGroup(configPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(statButton)
-                    .addGroup(configPanelLayout.createSequentialGroup()
-                        .addGap(6, 6, 6)
-                        .addComponent(noteLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addComponent(statButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(configPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cardLabel)
@@ -297,12 +286,12 @@ public class AppUI extends JFrame {
     private boolean canRun() {
         String rootDir = this.cardTextField.getText();
         if (StringUtils.isBlank(rootDir)) {
-            JOptionPane.showMessageDialog(this, "请选择打卡记录表（97-2003格式）！", "提示信息", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "请选择打卡记录Excel表格！", "提示信息", JOptionPane.WARNING_MESSAGE);
             return false;
         }
         String statFileDir = this.attendTextField.getText();
         if (StringUtils.isBlank(statFileDir)) {
-            JOptionPane.showMessageDialog(this, "请选择考勤模板表（97-2003格式）！", "提示信息", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "请选择考勤模板Excel表格！", "提示信息", JOptionPane.WARNING_MESSAGE);
             return false;
         }
         return true;
@@ -394,7 +383,6 @@ public class AppUI extends JFrame {
     private javax.swing.JLabel copyrightLabel;
     private javax.swing.JPanel logPanel;
     private javax.swing.JScrollPane logScrollPane;
-    private javax.swing.JLabel noteLabel;
     private javax.swing.JButton statButton;
     // End of variables declaration//GEN-END:variables
 }

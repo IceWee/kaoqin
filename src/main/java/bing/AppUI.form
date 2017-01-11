@@ -67,7 +67,7 @@
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="cardLabel" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="cardTextField" max="32767" attributes="0"/>
+                                  <Component id="cardTextField" pref="405" max="32767" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="attendLabel" min="-2" max="-2" attributes="0"/>
@@ -82,8 +82,6 @@
                           </Group>
                       </Group>
                       <Group type="102" alignment="1" attributes="0">
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="noteLabel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="32767" attributes="0"/>
                           <Component id="statButton" min="-2" max="-2" attributes="0"/>
                       </Group>
@@ -95,13 +93,7 @@
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
-                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                      <Component id="statButton" min="-2" max="-2" attributes="0"/>
-                      <Group type="102" attributes="0">
-                          <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
-                          <Component id="noteLabel" max="32767" attributes="0"/>
-                      </Group>
-                  </Group>
+                  <Component id="statButton" min="-2" max="-2" attributes="0"/>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="cardLabel" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -187,17 +179,6 @@
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="attendButtonActionPerformed"/>
           </Events>
-        </Component>
-        <Component class="javax.swing.JLabel" name="noteLabel">
-          <Properties>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="&#x5e7c;&#x5706;" size="14" style="1"/>
-            </Property>
-            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="33" green="33" red="ff" type="rgb"/>
-            </Property>
-            <Property name="text" type="java.lang.String" value="&#x63d0;&#x9192;&#xff1a;&#x8bf7;&#x5148;&#x5c06;&#x8003;&#x52e4;&#x7cfb;&#x7edf;&#x5bfc;&#x51fa;&#x7684;&#x6253;&#x5361;&#x8bb0;&#x5f55;&#x8868;&#x53e6;&#x5b58;&#x4e3a;97-2003&#x7248;&#x672c;&#x7684;Excel&#x6587;&#x4ef6;"/>
-          </Properties>
         </Component>
       </SubComponents>
     </Container>
