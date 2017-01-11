@@ -10,7 +10,7 @@ public class Constants {
     /**
      * 软件图标路径
      */
-    public static final String ICON_APP_PATH = "/bing/images/app.png";
+    public static final String ICON_APP_PATH = "/bing/ui/images/app.png";
     
     /**
      * 复制图标路径
@@ -30,6 +30,8 @@ public class Constants {
     public static final String TEXT_COPY = "复制";
     public static final String TEXT_CUT = "剪切";
     public static final String TEXT_CLEAR = "清除";
+    
+    public static final String ENCODING_UTF8 = "UTF-8";
     
     /**
      * 配置文件路径

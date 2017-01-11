@@ -11,20 +11,20 @@ import bing.util.ExceptionUtils;
 import bing.util.WorkDayUtils;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,12 +34,14 @@ import org.slf4j.LoggerFactory;
  * @author IceWee
  */
 public class StatThread implements Runnable {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(StatThread.class);
     private final AppUI app; // 用于回调
     private final String cardExcelPath; // 打卡记录表文件绝对路径
     private final String attendExcelPath; // 考勤模板表文件绝对路径
-    
+    static final String EXCEL_SUFFIX_XLS = "xls";
+    static final String EXCEL_SUFFIX_XLSX = "xlsx";
+
     public StatThread(AppUI app, String cardExcelPath, String attendExcelPath) {
         this.app = app;
         this.cardExcelPath = cardExcelPath;
@@ -75,43 +77,44 @@ public class StatThread implements Runnable {
         List<Attendance> attendances = new ArrayList<>(); // 用于填充考勤表
         List<CardRecord> cardRecords = new ArrayList<>(); // 用户生成标识后的打卡记录表
         Set<String> excludeNames = config.getExcludeNames(); // 排除统计的人名
-        HSSFWorkbook workbook = null;
+        Workbook workbook = null;
         try {
-            workbook = new HSSFWorkbook(new FileInputStream(new File(cardExcelPath)));
+            int beginIndex = config.getCardDataBeginRow() - 1;
+            workbook = getWorkbook(this.cardExcelPath);
             String yearMonth = getCardYearMonth(workbook, config); // 解析出打卡年月
             Set<Integer> workDays = WorkDayUtils.getWorkDays(yearMonth); // 获得当前工作月份应该上班的天
-            HSSFSheet sheet = workbook.getSheetAt(0);
-            int beginIndex = config.getCardDataBeginRow() - 1;
-            HSSFRow row;
+            Sheet sheet = workbook.getSheetAt(0);
+            Row row;
             String lastName = null; // 上次统计的人名
             String currentName; // 当前统计的人名
             Attendance attendance = new Attendance();
             int dutyDays = 0; // 出勤天数
             StringBuilder remarkBuilder = new StringBuilder(); // 备注
             String remark;
-            CardRecord cardRecord = null;
+            CardRecord cardRecord;
             for (int i = beginIndex; i < sheet.getLastRowNum(); i++) {
                 row = sheet.getRow(i);
-                if (row != null) {
-//                    cardRecord = parseCardRow(row, config, excludeNames, remarkBuilder);
-                    if (cardRecord != null) {
-                        cardRecords.add(cardRecord);
-                        currentName = cardRecord.getUsername();
-                        if (!StringUtils.equals(currentName, lastName)) { // 换人后需要初始化
-                            if (StringUtils.isNotBlank(lastName)) {
-                                attendance.setName(lastName);
-                                attendance.setDutyDays(String.valueOf(dutyDays));
-                                remark = remarkBuilder.toString();
-                                attendance.setRemark(remark);
-                                attendances.add(attendance);
-                            }
-                            attendance = new Attendance();
-                            remarkBuilder = new StringBuilder();
-                            dutyDays = 0;
-                            lastName = currentName;
-                        }
+                cardRecord = parseExcelRow(row, config, excludeNames, remarkBuilder, workDays);
+                if (cardRecord != null) {
+                    cardRecords.add(cardRecord);
+                    currentName = cardRecord.getUsername();
+                    if (Constants.CARD_CORRECT == cardRecord.getCode()) {
+                        dutyDays++; // 打卡记录完全正确，考勤天数自加
                     }
-                }   
+                    if (!StringUtils.equals(currentName, lastName)) { // 换人后需要初始化
+                        if (StringUtils.isNotBlank(lastName)) {
+                            attendance.setName(lastName);
+                            attendance.setDutyDays(String.valueOf(dutyDays));
+                            remark = remarkBuilder.toString();
+                            attendance.setRemark(remark);
+                            attendances.add(attendance);
+                        }
+                        attendance = new Attendance();
+                        remarkBuilder = new StringBuilder();
+                        dutyDays = 0;
+                        lastName = currentName;
+                    }
+                }
             }
             createCardExcel(cardRecords); // 生成标识打卡记录表
         } catch (Exception e) {
@@ -128,53 +131,74 @@ public class StatThread implements Runnable {
         }
         return attendances;
     }
-    
-    private CardRecord parseRow(HSSFRow row, Config config, Set<String> excludeNames, StringBuilder remarkBuilder) {
+
+    /**
+     * 生成Workbook
+     *
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    private Workbook getWorkbook(String excelPath) throws FileNotFoundException, IOException {
+        Workbook workbook;
+        if (StringUtils.endsWithIgnoreCase(excelPath, EXCEL_SUFFIX_XLS)) {
+            workbook = new HSSFWorkbook(new FileInputStream(new File(excelPath)));
+        } else {
+            workbook = new HSSFWorkbook(new FileInputStream(new File(excelPath)));
+        }
+        return workbook;
+    }
+
+    /**
+     * 解析打卡记录一行记录
+     *
+     * @param row
+     * @param config
+     * @param excludeNames
+     * @param remarkBuilder
+     * @param workDays
+     * @return
+     */
+    private CardRecord parseExcelRow(Row row, Config config, Set<String> excludeNames, StringBuilder remarkBuilder, Set<Integer> workDays) {
         CardRecord cardRecord = null;
-        HSSFCell nameCell = row.getCell(config.getCardNameColumn() - 1); // 员工名称
-        String userName = nameCell.getStringCellValue();
-        if (excludeNames.contains(userName)) { // 遇到不统计的人员跳过
-            return cardRecord;
+        if (row != null) {
+            Cell nameCell = row.getCell(config.getCardNameColumn() - 1); // 员工名称
+            String userName = getCellStringValue(nameCell);
+            if (excludeNames.contains(userName)) { // 遇到不统计的人员跳过
+                return cardRecord;
+            }
+            cardRecord = new CardRecord();
+            cardRecord.setUsername(userName);
+            Cell dateCell = row.getCell(config.getCardAttendateColumn() - 1); // 考勤日期
+            String attendate = getCellStringValue(dateCell);
+            cardRecord.setAttendate(attendate);
+            String tempVal = StringUtils.substringAfterLast(attendate, "-");
+            int day = Integer.valueOf(tempVal); // 日期-日考勤日期列
+            Cell ondutyCell = row.getCell(config.getCardOndutyColumn() - 1); // 上班打卡时间
+            String ondutyTime = getCellStringValue(ondutyCell);
+            Cell offdutyCell = row.getCell(config.getCardOffdutyColumn() - 1); // 下班打卡时间
+            String offdutyTime = getCellStringValue(offdutyCell);
+            int code = verifyCardTime(config, ondutyTime, offdutyTime, workDays, day);
+            if (Constants.CARD_CORRECT != code && Constants.CARD_EMPTY != code) {
+                remarkBuilder.append(day).append("日,");
+            }
+            cardRecord.setOndutyTime(ondutyTime);
+            cardRecord.setOffdutyTime(offdutyTime);
+            cardRecord.setCode(code);
         }
-        cardRecord.setUsername(userName);
-        HSSFCell dateCell = row.getCell(config.getCardAttendateColumn() - 1); // 考勤日期
-        String attendate = StringUtils.trim(dateCell.getStringCellValue());
-        cardRecord.setAttendate(attendate);
-        String tempVal = StringUtils.substringAfterLast(attendate, "-");
-        int day = Integer.valueOf(tempVal); // 日期-日考勤日期列
-        HSSFCell ondutyCell = row.getCell(config.getCardOndutyColumn() - 1); // 上班打卡时间
-        String ondutyTime;
-        if (ondutyCell == null) {
-            ondutyTime = "";
-        } else {
-            ondutyTime = StringUtils.trim(ondutyCell.getStringCellValue());
-        }
-        HSSFCell offdutyCell = row.getCell(config.getCardOffdutyColumn() - 1); // 下班打卡时间
-        String offdutyTime;
-        if (offdutyCell == null) {
-            offdutyTime = "";
-        } else {
-            offdutyTime = StringUtils.trim(offdutyCell.getStringCellValue());
-        }
-//        int code = verifyCardTime(config, ondutyTime, offdutyTime, workDays, day);
-//        if (Constants.CARD_CORRECT == code) {
-//            dutyDays++; // 打卡记录完全正确，考勤天数自加
-//        } 
-//        if (Constants.CARD_CORRECT != code && Constants.CARD_EMPTY != code){
-//            remarkBuilder.append(day).append("日,");
-//        }
-        cardRecord.setOndutyTime(ondutyTime);
-        cardRecord.setOffdutyTime(offdutyTime);
-//        cardRecord.setCode(code);
         return cardRecord;
     }
-    
-    private String getCellStringValue(HSSFCell cell) {
+
+    /**
+     * 获得Excel单元格值
+     *
+     * @param cell
+     * @return
+     */
+    private String getCellStringValue(Cell cell) {
         if (cell != null) {
-            int cellType = cell.getCellType();
-            if (CellType.STRING.getCode() == cellType) {
-                
-            }
+            DataFormatter formatter = new DataFormatter();
+            return StringUtils.trim(formatter.formatCellValue(cell));
         }
         return StringUtils.EMPTY;
     }
@@ -190,21 +214,20 @@ public class StatThread implements Runnable {
         String filepath = ConfigUtils.getReportPath() + filename;
         FileInputStream in = null;
         FileOutputStream out = null;
-        HSSFWorkbook workbook = null;
+        Workbook workbook = null;
         try {
-            in = new FileInputStream(this.attendExcelPath);
-            workbook = new HSSFWorkbook(in);
+            workbook = getWorkbook(attendExcelPath);
             int sheetIndex = workbook.getNumberOfSheets() - 1;
-            HSSFSheet sheet = workbook.getSheetAt(sheetIndex);
+            Sheet sheet = workbook.getSheetAt(sheetIndex);
             int rowIndex = config.getAttendDataBeginRow() - 1;
             int nameCellIndex = config.getAttendNameColumn() - 1;
             int daysCellIndex = config.getAttendDaysColumn() - 1;
             int remarkCellIndex = config.getAttendRemarkColumn() - 1;
-            HSSFRow row;
-            HSSFCell nameCell, daysCell, remarkCell;
+            Row row;
+            Cell nameCell, daysCell, remarkCell;
             String name;
             Attendance attendance;
-            HSSFCellStyle remarkCellStyle = ExcelCellStyleUtils.createRemarkCellStyle(workbook);
+            CellStyle remarkCellStyle = ExcelCellStyleUtils.createRemarkCellStyle(workbook);
             for (int i = rowIndex; i < sheet.getLastRowNum(); i++) {
                 row = sheet.getRow(i);
                 nameCell = row.getCell(nameCellIndex);
@@ -242,7 +265,7 @@ public class StatThread implements Runnable {
             if (workbook != null) {
                 try {
                     workbook.close();
-                } catch (IOException e) {
+                } catch (Exception e) {
                 }
             }
             if (in != null) {
@@ -253,13 +276,13 @@ public class StatThread implements Runnable {
             }
         }
     }
-    
+
     /**
      * 根据名称查找
-     * 
+     *
      * @param name
      * @param attendances
-     * @return 
+     * @return
      */
     private Attendance getAttendance(String name, List<Attendance> attendances) {
         Attendance attendance = null;
@@ -271,11 +294,9 @@ public class StatThread implements Runnable {
         }
         return attendance;
     }
-    
+
     /**
-     * 判断打卡记录是否正常 判断依据： 
-     * 1）上班打卡时间和下班时间打卡都为空 
-     * 2）上班或下班打卡时间任意一个为空
+     * 判断打卡记录是否正常 判断依据： 1）上班打卡时间和下班时间打卡都为空 2）上班或下班打卡时间任意一个为空
      * 3）上班和下班打卡时间都非空，需要分别判断上班时间是否迟到，下班时间是否早退
      *
      * @param config
@@ -320,22 +341,22 @@ public class StatThread implements Runnable {
         }
         return code;
     }
-    
+
     /**
      * 生成新的打卡记录表
-     * 
+     *
      * @param workbook
      * @param cardRecords
      */
     private void createCardExcel(List<CardRecord> cardRecords) {
         String filename = Constants.CARD_EXCEL_MODIFIED + "." + Constants.EXT_XLS;
         String filepath = ConfigUtils.getReportPath() + filename;
-        HSSFWorkbook workbook = new HSSFWorkbook();
+        Workbook workbook = new HSSFWorkbook();
         CellStyle headerStyle = ExcelCellStyleUtils.createHeaderCellStyle(workbook);
         CellStyle defaultStyle = ExcelCellStyleUtils.createCellStyle(workbook, Constants.CELL_STYLE_DEFAULT);
         CellStyle yellowStyle = ExcelCellStyleUtils.createCellStyle(workbook, Constants.CELL_STYLE_YELLOW);
         CellStyle redStyle = ExcelCellStyleUtils.createCellStyle(workbook, Constants.CELL_STYLE_RED);
-        HSSFSheet sheet = workbook.createSheet("打卡记录");
+        Sheet sheet = workbook.createSheet("打卡记录");
         int rowIndex = 0;
         createCardHeader(sheet, headerStyle, rowIndex++); // 生成表头
         // 循环插入数据行
@@ -359,62 +380,62 @@ public class StatThread implements Runnable {
             }
             try {
                 workbook.close();
-            } catch (IOException ex) {
+            } catch (Exception ex) {
             }
         }
     }
-    
+
     /**
      * 生成表头
-     * 
+     *
      * @param sheet
      * @param headerStyle
-     * @param rowIndex 
+     * @param rowIndex
      */
-    private void createCardHeader(HSSFSheet sheet, CellStyle headerStyle, int rowIndex) {
-        HSSFRow header = sheet.createRow(rowIndex);
+    private void createCardHeader(Sheet sheet, CellStyle headerStyle, int rowIndex) {
+        Row header = sheet.createRow(rowIndex);
         int cellIndex = 0;
-        HSSFCell nameCell = header.createCell(cellIndex++);
+        Cell nameCell = header.createCell(cellIndex++);
         nameCell.setCellStyle(headerStyle);
         nameCell.setCellValue("姓名");
-        HSSFCell dateCell = header.createCell(cellIndex++);
+        Cell dateCell = header.createCell(cellIndex++);
         dateCell.setCellStyle(headerStyle);
         dateCell.setCellValue("考勤日期");
-        HSSFCell ondutyCell = header.createCell(cellIndex++);
+        Cell ondutyCell = header.createCell(cellIndex++);
         ondutyCell.setCellStyle(headerStyle);
         ondutyCell.setCellValue("上班时间");
-        HSSFCell offdutyCell = header.createCell(cellIndex++);
+        Cell offdutyCell = header.createCell(cellIndex++);
         offdutyCell.setCellStyle(headerStyle);
         offdutyCell.setCellValue("下班时间");
     }
-    
+
     /**
      * 插入打卡记录
-     * 
+     *
      * @param sheet
      * @param defaultStyle
      * @param yellowStyle
      * @param redStyle
      * @param rowIndex
-     * @param cardRecord 
+     * @param cardRecord
      */
-    private void insertCardRow(HSSFSheet sheet, CellStyle defaultStyle, CellStyle yellowStyle, CellStyle redStyle, int rowIndex, CardRecord cardRecord) {
-        HSSFRow row = sheet.createRow(rowIndex);
+    private void insertCardRow(Sheet sheet, CellStyle defaultStyle, CellStyle yellowStyle, CellStyle redStyle, int rowIndex, CardRecord cardRecord) {
+        Row row = sheet.createRow(rowIndex);
         int cellIndex = 0;
-        HSSFCell nameCell = row.createCell(cellIndex++);
+        Cell nameCell = row.createCell(cellIndex++);
         nameCell.setCellValue(cardRecord.getUsername());
-        HSSFCell dateCell = row.createCell(cellIndex++);
+        Cell dateCell = row.createCell(cellIndex++);
         dateCell.setCellValue(cardRecord.getAttendate());
-        HSSFCell ondutyCell = row.createCell(cellIndex++);
+        Cell ondutyCell = row.createCell(cellIndex++);
         ondutyCell.setCellValue(cardRecord.getOndutyTime());
-        HSSFCell offdutyCell = row.createCell(cellIndex++);
+        Cell offdutyCell = row.createCell(cellIndex++);
         offdutyCell.setCellValue(cardRecord.getOffdutyTime());
         sign(defaultStyle, yellowStyle, redStyle, cardRecord.getCode(), nameCell, dateCell, ondutyCell, offdutyCell);
     }
-    
+
     /**
      * 异常打卡记录样式标记
-     * 
+     *
      * @param defaultStyle
      * @param yellowStyle
      * @param redStyle
@@ -422,10 +443,10 @@ public class StatThread implements Runnable {
      * @param nameCell
      * @param dateCell
      * @param ondutyCell
-     * @param offdutyCell 
+     * @param offdutyCell
      */
-    private void sign(CellStyle defaultStyle, CellStyle yellowStyle, CellStyle redStyle, int code, HSSFCell nameCell, HSSFCell dateCell, HSSFCell ondutyCell, HSSFCell offdutyCell) {
-        switch (code){
+    private void sign(CellStyle defaultStyle, CellStyle yellowStyle, CellStyle redStyle, int code, Cell nameCell, Cell dateCell, Cell ondutyCell, Cell offdutyCell) {
+        switch (code) {
             case 0: // 打卡正常 Constants.CARD_CORRECT
                 nameCell.setCellStyle(defaultStyle);
                 dateCell.setCellStyle(defaultStyle);
@@ -458,22 +479,21 @@ public class StatThread implements Runnable {
                 break;
         }
     }
-    
+
     /**
-     * 解析打卡记录表获得打卡的年月
-     * 格式：2016-10
-     * 
+     * 解析打卡记录表获得打卡的年月 格式：2016-10
+     *
      * @param workbook
      * @param config
      * @return 2016-08
      */
-    private String getCardYearMonth(HSSFWorkbook workbook, Config config) {
+    private String getCardYearMonth(Workbook workbook, Config config) {
         String yearMonth = null;
         try {
-            HSSFSheet sheet = workbook.getSheetAt(0);
+            Sheet sheet = workbook.getSheetAt(0);
             int beginIndex = config.getCardDataBeginRow() - 1;
-            HSSFRow firstRow = sheet.getRow(beginIndex);
-            HSSFCell dateCell = firstRow.getCell(config.getCardAttendateColumn() - 1); // 考勤日期
+            Row firstRow = sheet.getRow(beginIndex);
+            Cell dateCell = firstRow.getCell(config.getCardAttendateColumn() - 1); // 考勤日期
             String attendate = StringUtils.trim(dateCell.getStringCellValue());
             yearMonth = StringUtils.substringBeforeLast(attendate, "-");
         } catch (Exception e) {
@@ -482,5 +502,5 @@ public class StatThread implements Runnable {
         }
         return yearMonth;
     }
-    
+
 }

@@ -1,6 +1,7 @@
 package bing.ui;
 
 import bing.Constants;
+import bing.util.ExceptionUtils;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -14,6 +15,8 @@ import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 带右键菜单的JTextArea
@@ -21,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author IceWee
  */
 public class JTextAreaExt extends JTextArea implements MouseListener {
-
+    
     private JPopupMenu popMenu = null; // 弹出菜单
     private JMenuItem menuItemCopy = null, menuItemCut = null, menuItemClear = null; // 功能菜单
     static final ImageIcon ICON_COPY = new ImageIcon(JTextAreaExt.class.getResource(Constants.ICON_COPY_PATH));
@@ -34,6 +37,7 @@ public class JTextAreaExt extends JTextArea implements MouseListener {
     }
 
     private void init() {
+        this.addMouseListener(this);
         popMenu = new JPopupMenu();
         menuItemCopy = new JMenuItem(Constants.TEXT_COPY);
         menuItemCopy.setIcon(ICON_COPY);
@@ -86,10 +90,6 @@ public class JTextAreaExt extends JTextArea implements MouseListener {
         }
     }
 
-    private JSeparator createSeparator() {
-        return new JSeparator();
-    }
-
     /**
      * 文本区域是否有内容
      *
@@ -106,6 +106,10 @@ public class JTextAreaExt extends JTextArea implements MouseListener {
      */
     private boolean allowCopy() {
         return this.getSelectionStart() != this.getSelectionEnd();
+    }
+
+    private JSeparator createSeparator() {
+        return new JSeparator();
     }
 
     @Override

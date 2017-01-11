@@ -8,6 +8,7 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Calendar;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -42,6 +43,8 @@ public class AppUI extends JFrame {
         initComponents();
         // 初始化log4j日志输出控制台
         initLogConsole();
+        // 初始化版权
+        initCopyright();
         LOGGER.info("感谢使用 走向未来®考勤统计辅助工具");
     }
     
@@ -61,6 +64,15 @@ public class AppUI extends JFrame {
             String error = ExceptionUtils.createExceptionString(e);
             LOGGER.error("初始化日志控制台时出现了异常...\n{}", error);
         }
+    }
+    
+    /**
+     * 初始化版权
+     */
+    private void initCopyright() {
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        this.copyrightLabel.setText("® " + year + " 一生萍安");
     }
 
     /**
@@ -196,10 +208,9 @@ public class AppUI extends JFrame {
         );
         logPanelLayout.setVerticalGroup(
             logPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(logScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
+            .addComponent(logScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)
         );
 
-        copyrightLabel.setFont(new java.awt.Font("微软雅黑", 0, 12)); // NOI18N
         copyrightLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         copyrightLabel.setText("© 2017");
 
@@ -216,9 +227,9 @@ public class AppUI extends JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(configPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(logPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(copyrightLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(logPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(copyrightLabel))
         );
 
         pack();

@@ -4,8 +4,9 @@ import bing.Constants;
 import bing.bean.Config;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URLDecoder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -25,11 +26,11 @@ public class ConfigUtils {
         BufferedReader reader = null;
         try {
             config = new Config();
-            ClassLoader classLoader = ClassLoader.getSystemClassLoader();  
+            ClassLoader classLoader = ClassLoader.getSystemClassLoader();
             String configPath = classLoader.getResource(Constants.CONFIG_FILE_PATH).getFile();
-            configPath = URLDecoder.decode(configPath, "UTF-8");
+            configPath = URLDecoder.decode(configPath, Constants.ENCODING_UTF8);
             File configFile = new File(configPath);
-            reader = new BufferedReader(new FileReader(configFile));
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(configFile), Constants.ENCODING_UTF8));
             String line, value;
             String[] array;
             while ((line = reader.readLine()) != null) {
@@ -77,11 +78,11 @@ public class ConfigUtils {
         }
         return config;
     }
-    
+
     /**
      * 获取当前位置
-     * 
-     * @return 
+     *
+     * @return
      */
     public static String getReportPath() {
         File file = new File("");
