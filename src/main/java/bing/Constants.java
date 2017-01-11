@@ -11,7 +11,26 @@ public class Constants {
      * 软件图标路径
      */
     public static final String ICON_APP_PATH = "/bing/images/app.png";
+    
+    /**
+     * 复制图标路径
+     */
+    public static final String ICON_COPY_PATH = "/bing/ui/images/copy.png";
 
+    /**
+     * 剪切图标路径
+     */
+    public static final String ICON_CUT_PATH = "/bing/ui/images/cut.png";
+
+    /**
+     * 清空图标路径
+     */
+    public static final String ICON_CLEAR_PATH = "/bing/ui/images/clear.png";
+
+    public static final String TEXT_COPY = "复制";
+    public static final String TEXT_CUT = "剪切";
+    public static final String TEXT_CLEAR = "清除";
+    
     /**
      * 配置文件路径
      */

@@ -42,7 +42,7 @@ public class AppUI extends JFrame {
         initComponents();
         // 初始化log4j日志输出控制台
         initLogConsole();
-        LOGGER.info("感谢使用 走向未来®考勤统计辅助工具v1.0");
+        LOGGER.info("感谢使用 走向未来®考勤统计辅助工具");
     }
     
     /**
@@ -80,10 +80,11 @@ public class AppUI extends JFrame {
         attendTextField = new javax.swing.JTextField();
         cardButton = new javax.swing.JButton();
         attendButton = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
+        noteLabel = new javax.swing.JLabel();
         logPanel = new javax.swing.JPanel();
         logScrollPane = new javax.swing.JScrollPane();
         console = new bing.ui.JTextAreaExt();
+        copyrightLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("走向未来®考勤统计辅助工具v1.0");
@@ -128,9 +129,9 @@ public class AppUI extends JFrame {
             }
         });
 
-        jLabel1.setFont(new java.awt.Font("幼圆", 1, 14)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(255, 51, 51));
-        jLabel1.setText("提醒：请先将考勤系统导出的打卡记录表另存为97-2003版本的Excel文件");
+        noteLabel.setFont(new java.awt.Font("幼圆", 1, 14)); // NOI18N
+        noteLabel.setForeground(new java.awt.Color(255, 51, 51));
+        noteLabel.setText("提醒：请先将考勤系统导出的打卡记录表另存为97-2003版本的Excel文件");
 
         javax.swing.GroupLayout configPanelLayout = new javax.swing.GroupLayout(configPanel);
         configPanel.setLayout(configPanelLayout);
@@ -155,7 +156,7 @@ public class AppUI extends JFrame {
                             .addComponent(attendButton, javax.swing.GroupLayout.Alignment.TRAILING)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, configPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(jLabel1)
+                        .addComponent(noteLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(statButton)))
                 .addContainerGap())
@@ -167,7 +168,7 @@ public class AppUI extends JFrame {
                     .addComponent(statButton)
                     .addGroup(configPanelLayout.createSequentialGroup()
                         .addGap(6, 6, 6)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(noteLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(configPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cardLabel)
@@ -195,8 +196,12 @@ public class AppUI extends JFrame {
         );
         logPanelLayout.setVerticalGroup(
             logPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(logScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 179, Short.MAX_VALUE)
+            .addComponent(logScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
         );
+
+        copyrightLabel.setFont(new java.awt.Font("微软雅黑", 0, 12)); // NOI18N
+        copyrightLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        copyrightLabel.setText("© 2017");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -204,13 +209,16 @@ public class AppUI extends JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(configPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(logPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(copyrightLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(configPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(logPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(logPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(copyrightLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -372,9 +380,10 @@ public class AppUI extends JFrame {
     private javax.swing.JTextField cardTextField;
     private javax.swing.JPanel configPanel;
     private bing.ui.JTextAreaExt console;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel copyrightLabel;
     private javax.swing.JPanel logPanel;
     private javax.swing.JScrollPane logScrollPane;
+    private javax.swing.JLabel noteLabel;
     private javax.swing.JButton statButton;
     // End of variables declaration//GEN-END:variables
 }

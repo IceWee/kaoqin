@@ -22,7 +22,9 @@ import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,66 +83,35 @@ public class StatThread implements Runnable {
             HSSFSheet sheet = workbook.getSheetAt(0);
             int beginIndex = config.getCardDataBeginRow() - 1;
             HSSFRow row;
-            HSSFCell nameCell, dateCell, ondutyCell, offdutyCell;
             String lastName = null; // 上次统计的人名
             String currentName; // 当前统计的人名
-            String tempVal, attendate, ondutyTime, offdutyTime;
-            int day;
             Attendance attendance = new Attendance();
             int dutyDays = 0; // 出勤天数
             StringBuilder remarkBuilder = new StringBuilder(); // 备注
             String remark;
             CardRecord cardRecord;
             for (int i = beginIndex; i < sheet.getLastRowNum(); i++) {
-                cardRecord = new CardRecord();
                 row = sheet.getRow(i);
-                nameCell = row.getCell(config.getCardNameColumn() - 1); // 员工名称
-                currentName = nameCell.getStringCellValue();
-                if (excludeNames.contains(currentName)) { // 遇到不统计的人员跳过
-                    continue;
-                }
-                cardRecord.setUsername(currentName);
-                dateCell = row.getCell(config.getCardAttendateColumn() - 1); // 考勤日期
-                attendate = StringUtils.trim(dateCell.getStringCellValue());
-                cardRecord.setAttendate(attendate);
-                tempVal = StringUtils.substringAfterLast(attendate, "-");
-                day = Integer.valueOf(tempVal); // 日期-日考勤日期列
-                ondutyCell = row.getCell(config.getCardOndutyColumn() - 1); // 上班打卡时间
-                if (ondutyCell == null) {
-                    ondutyTime = "";
-                } else {
-                    ondutyTime = StringUtils.trim(ondutyCell.getStringCellValue());
-                }
-                offdutyCell = row.getCell(config.getCardOffdutyColumn() - 1); // 下班打卡时间
-                if (offdutyCell == null) {
-                    offdutyTime = "";
-                } else {
-                    offdutyTime = StringUtils.trim(offdutyCell.getStringCellValue());
-                }
-                int code = verifyCardTime(config, ondutyTime, offdutyTime, workDays, day);
-                if (Constants.CARD_CORRECT == code) {
-                    dutyDays++; // 打卡记录完全正确，考勤天数自加
-                } 
-                if (Constants.CARD_CORRECT != code && Constants.CARD_EMPTY != code){
-                    remarkBuilder.append(day).append("日,");
-                }
-                cardRecord.setOndutyTime(ondutyTime);
-                cardRecord.setOffdutyTime(offdutyTime);
-                cardRecord.setCode(code);
-                cardRecords.add(cardRecord);
-                if (!StringUtils.equals(currentName, lastName)) { // 换人后需要初始化
-                    if (StringUtils.isNotBlank(lastName)) {
-                        attendance.setName(lastName);
-                        attendance.setDutyDays(String.valueOf(dutyDays));
-                        remark = remarkBuilder.toString();
-                        attendance.setRemark(remark);
-                        attendances.add(attendance);
+                if (row != null) {
+                    cardRecord = parseCardRow(row, config, excludeNames, remarkBuilder);
+                    if (cardRecord != null) {
+                        cardRecords.add(cardRecord);
+                        currentName = cardRecord.getUsername();
+                        if (!StringUtils.equals(currentName, lastName)) { // 换人后需要初始化
+                            if (StringUtils.isNotBlank(lastName)) {
+                                attendance.setName(lastName);
+                                attendance.setDutyDays(String.valueOf(dutyDays));
+                                remark = remarkBuilder.toString();
+                                attendance.setRemark(remark);
+                                attendances.add(attendance);
+                            }
+                            attendance = new Attendance();
+                            remarkBuilder = new StringBuilder();
+                            dutyDays = 0;
+                            lastName = currentName;
+                        }
                     }
-                    attendance = new Attendance();
-                    remarkBuilder = new StringBuilder();
-                    dutyDays = 0;
-                    lastName = currentName;
-                }
+                }   
             }
             createCardExcel(cardRecords); // 生成标识打卡记录表
         } catch (Exception e) {
@@ -156,6 +127,56 @@ public class StatThread implements Runnable {
             }
         }
         return attendances;
+    }
+    
+    private CardRecord parseRow(HSSFRow row, Config config, Set<String> excludeNames, StringBuilder remarkBuilder) {
+        CardRecord cardRecord = null;
+        HSSFCell nameCell = row.getCell(config.getCardNameColumn() - 1); // 员工名称
+        String userName = nameCell.getStringCellValue();
+        if (excludeNames.contains(userName)) { // 遇到不统计的人员跳过
+            return cardRecord;
+        }
+        cardRecord.setUsername(userName);
+        HSSFCell dateCell = row.getCell(config.getCardAttendateColumn() - 1); // 考勤日期
+        String attendate = StringUtils.trim(dateCell.getStringCellValue());
+        cardRecord.setAttendate(attendate);
+        String tempVal = StringUtils.substringAfterLast(attendate, "-");
+        int day = Integer.valueOf(tempVal); // 日期-日考勤日期列
+        HSSFCell ondutyCell = row.getCell(config.getCardOndutyColumn() - 1); // 上班打卡时间
+        String ondutyTime;
+        if (ondutyCell == null) {
+            ondutyTime = "";
+        } else {
+            ondutyTime = StringUtils.trim(ondutyCell.getStringCellValue());
+        }
+        HSSFCell offdutyCell = row.getCell(config.getCardOffdutyColumn() - 1); // 下班打卡时间
+        String offdutyTime;
+        if (offdutyCell == null) {
+            offdutyTime = "";
+        } else {
+            offdutyTime = StringUtils.trim(offdutyCell.getStringCellValue());
+        }
+        int code = verifyCardTime(config, ondutyTime, offdutyTime, workDays, day);
+        if (Constants.CARD_CORRECT == code) {
+            dutyDays++; // 打卡记录完全正确，考勤天数自加
+        } 
+        if (Constants.CARD_CORRECT != code && Constants.CARD_EMPTY != code){
+            remarkBuilder.append(day).append("日,");
+        }
+        cardRecord.setOndutyTime(ondutyTime);
+        cardRecord.setOffdutyTime(offdutyTime);
+        cardRecord.setCode(code);
+        return cardRecord;
+    }
+    
+    private String getCellStringValue(HSSFCell cell) {
+        if (cell != null) {
+            int cellType = cell.getCellType();
+            if (CellType.STRING.getCode() == cellType) {
+                
+            }
+        }
+        return StringUtils.EMPTY;
     }
 
     /**
