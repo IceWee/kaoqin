@@ -89,11 +89,11 @@ public class StatThread implements Runnable {
             int dutyDays = 0; // 出勤天数
             StringBuilder remarkBuilder = new StringBuilder(); // 备注
             String remark;
-            CardRecord cardRecord;
+            CardRecord cardRecord = null;
             for (int i = beginIndex; i < sheet.getLastRowNum(); i++) {
                 row = sheet.getRow(i);
                 if (row != null) {
-                    cardRecord = parseCardRow(row, config, excludeNames, remarkBuilder);
+//                    cardRecord = parseCardRow(row, config, excludeNames, remarkBuilder);
                     if (cardRecord != null) {
                         cardRecords.add(cardRecord);
                         currentName = cardRecord.getUsername();
@@ -156,16 +156,16 @@ public class StatThread implements Runnable {
         } else {
             offdutyTime = StringUtils.trim(offdutyCell.getStringCellValue());
         }
-        int code = verifyCardTime(config, ondutyTime, offdutyTime, workDays, day);
-        if (Constants.CARD_CORRECT == code) {
-            dutyDays++; // 打卡记录完全正确，考勤天数自加
-        } 
-        if (Constants.CARD_CORRECT != code && Constants.CARD_EMPTY != code){
-            remarkBuilder.append(day).append("日,");
-        }
+//        int code = verifyCardTime(config, ondutyTime, offdutyTime, workDays, day);
+//        if (Constants.CARD_CORRECT == code) {
+//            dutyDays++; // 打卡记录完全正确，考勤天数自加
+//        } 
+//        if (Constants.CARD_CORRECT != code && Constants.CARD_EMPTY != code){
+//            remarkBuilder.append(day).append("日,");
+//        }
         cardRecord.setOndutyTime(ondutyTime);
         cardRecord.setOffdutyTime(offdutyTime);
-        cardRecord.setCode(code);
+//        cardRecord.setCode(code);
         return cardRecord;
     }
     
