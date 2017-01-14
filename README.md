@@ -30,7 +30,7 @@ mvn install:install-file -Dfile=./src/main/lib/substance-4.0.jar -DgroupId=org.j
 mvn package
 ```
 #### 5.运行工具
->到`kaoqin/target/kaoqin`目录下，双击`运行.bat`即可启动本工具。
+>到`kaoqin/target/kaoqin`目录下，双击`kaoqin-1.0.jar`即可启动本工具。
 
 ## 其他
 ####使用注意
