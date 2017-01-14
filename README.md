@@ -23,7 +23,8 @@ cd ./kaoqin
 ```
 #### 3.安装Swing皮肤
 ```shell
-mvn install:install-file -Dfile=./src/main/lib/substance-4.0.jar -DgroupId=org.jvnet -DartifactId=substance -Dversion=4.0.RELEASE -Dpackaging=jar
+mvn install:install-file -Dfile=./src/main/lib/substance-4.0.jar -DgroupId=org.jvnet -DartifactId=substance 
+-Dversion=4.0.RELEASE -Dpackaging=jar
 ```
 #### 4.MAVEN打包
 ```shell
