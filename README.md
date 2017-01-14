@@ -14,19 +14,19 @@
 ## 构建
 
 #### 1.克隆项目到本地
-```Perl
+```shell
 git clone https://github.com/IceWee/kaoqin.git
 ```
 #### 2.进入项目目录
-```Perl
+```shell
 cd ./kaoqin
 ```
 #### 3.安装Swing皮肤
-```Perl
+```shell
 mvn install:install-file -Dfile=./src/main/lib/substance-4.0.jar -DgroupId=org.jvnet -DartifactId=substance -Dversion=4.0.RELEASE -Dpackaging=jar
 ```
 #### 4.MAVEN打包
-```Perl
+```shell
 mvn package
 ```
 #### 5.运行工具
