@@ -2,13 +2,13 @@ package bing.thread;
 
 import bing.AppUI;
 import bing.Constants;
+import bing.util.HolidayUtils;
 import bing.bean.Attendance;
 import bing.bean.CardRecord;
 import bing.bean.Config;
 import bing.util.ConfigUtils;
 import bing.util.ExcelCellStyleUtils;
 import bing.util.ExceptionUtils;
-import bing.util.WorkDayUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -83,7 +83,7 @@ public class StatThread implements Runnable {
             int beginIndex = config.getCardDataBeginRow() - 1;
             workbook = getWorkbook(this.cardExcelPath);
             String yearMonth = getCardYearMonth(workbook, config); // 解析出打卡年月
-            Set<Integer> workDays = WorkDayUtils.getWorkDays(yearMonth); // 获得当前工作月份应该上班的天
+            List<Integer> holidays = HolidayUtils.getHoliays(yearMonth); // 获得当前工作月份节假日的天
             Sheet sheet = workbook.getSheetAt(0);
             Row row;
             String lastName = null; // 上次统计的人名
@@ -95,7 +95,7 @@ public class StatThread implements Runnable {
             CardRecord cardRecord;
             for (int i = beginIndex; i < sheet.getLastRowNum(); i++) {
                 row = sheet.getRow(i);
-                cardRecord = parseExcelRow(row, config, excludeNames, remarkBuilder, workDays);
+                cardRecord = parseExcelRow(row, config, excludeNames, remarkBuilder, holidays);
                 if (cardRecord != null) {
                     cardRecords.add(cardRecord);
                     currentName = cardRecord.getUsername();
@@ -157,10 +157,10 @@ public class StatThread implements Runnable {
      * @param config
      * @param excludeNames
      * @param remarkBuilder
-     * @param workDays
+     * @param holidays
      * @return
      */
-    private CardRecord parseExcelRow(Row row, Config config, Set<String> excludeNames, StringBuilder remarkBuilder, Set<Integer> workDays) {
+    private CardRecord parseExcelRow(Row row, Config config, Set<String> excludeNames, StringBuilder remarkBuilder, List<Integer> holidays) {
         CardRecord cardRecord = null;
         if (row != null) {
             Cell nameCell = row.getCell(config.getCardNameColumn() - 1); // 员工名称
@@ -179,7 +179,7 @@ public class StatThread implements Runnable {
             String ondutyTime = getCellStringValue(ondutyCell);
             Cell offdutyCell = row.getCell(config.getCardOffdutyColumn() - 1); // 下班打卡时间
             String offdutyTime = getCellStringValue(offdutyCell);
-            int code = verifyCardTime(config, ondutyTime, offdutyTime, workDays, day);
+            int code = verifyCardTime(config, ondutyTime, offdutyTime, holidays, day);
             if (Constants.CARD_CORRECT != code && Constants.CARD_EMPTY != code) {
                 remarkBuilder.append(day).append("日,");
             }
@@ -304,14 +304,14 @@ public class StatThread implements Runnable {
      * @param config
      * @param ondutyTime 上班时间
      * @param offdutyTime 下班时间
-     * @param workDays 工作日集合；1,2,3...
+     * @param holidays 节假日集合；1,2,3...
      * @param day 天；1
      * @return
      */
-    private int verifyCardTime(Config config, String ondutyTime, String offdutyTime, Set<Integer> workDays, int day) {
+    private int verifyCardTime(Config config, String ondutyTime, String offdutyTime, List<Integer> holidays, int day) {
         int code = Constants.CARD_CORRECT;
         if (StringUtils.isBlank(ondutyTime) && StringUtils.isBlank(offdutyTime)) { // 全天无打卡记录
-            if (workDays.contains(day)) { // 工作日未打卡
+            if (!holidays.contains(day)) { // 工作日未打卡
                 code = Constants.CARD_ERROR;
             } else {
                 code = Constants.CARD_EMPTY;
@@ -352,7 +352,7 @@ public class StatThread implements Runnable {
      */
     private void createCardExcel(List<CardRecord> cardRecords) {
         String suffix = getExcelSuffix(cardExcelPath);
-        String filename = Constants.CARD_EXCEL_MODIFIED + "." +suffix;
+        String filename = Constants.CARD_EXCEL_MODIFIED + "." + suffix;
         String filepath = ConfigUtils.getReportPath() + filename;
         Workbook workbook;
         if (EXCEL_SUFFIX_XLS.endsWith(suffix)) {
@@ -493,7 +493,7 @@ public class StatThread implements Runnable {
      *
      * @param workbook
      * @param config
-     * @return 2016-08
+     * @return 201608
      */
     private String getCardYearMonth(Workbook workbook, Config config) {
         String yearMonth = null;
@@ -504,17 +504,19 @@ public class StatThread implements Runnable {
             Cell dateCell = firstRow.getCell(config.getCardAttendateColumn() - 1); // 考勤日期
             String attendate = StringUtils.trim(dateCell.getStringCellValue());
             yearMonth = StringUtils.substringBeforeLast(attendate, "-");
+            yearMonth = StringUtils.replace(yearMonth, "-", "");
         } catch (Exception e) {
             String error = ExceptionUtils.createExceptionString(e);
             LOGGER.error("解析打卡记录表获得打卡年月时出现了异常...\n{}", error);
         }
         return yearMonth;
     }
-    
+
     /**
      * 获取excel后缀名
+     *
      * @param excel
-     * @return 
+     * @return
      */
     private static String getExcelSuffix(String excel) {
         return StringUtils.substringAfterLast(excel, ".");

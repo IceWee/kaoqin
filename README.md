@@ -1,5 +1,5 @@
 # kaoqin
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://192.168.1.101/weibing/HxdPluginClient/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/IceWee/kaoqin/blob/master/LICENSE)
 [![OpenTracing Badge](https://img.shields.io/badge/OpenTracing-enabled-blue.svg)](http://opentracing.io)
 
 ## 简介
